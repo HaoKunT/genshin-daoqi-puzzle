@@ -17,6 +17,7 @@ type Status struct {
 var version = "MISSING build version [git hash]"
 
 var input = make([]int, 0)
+var circle bool
 var length int
 var queue = make([]*Status, 0)
 
@@ -53,9 +54,15 @@ func pop(v *[]*Status) *Status {
 func (stat *Status) Next(next int) {
 	stat.Tracing = append(stat.Tracing, next)
 	if next == 0 {
+		if circle {
+			stat.Values[length-1] += 1
+		}
 		stat.Values[0] += 1
 		stat.Values[1] += 1
 	} else if next == (length - 1) {
+		if circle {
+			stat.Values[0] += 1
+		}
 		stat.Values[length-1] += 1
 		stat.Values[length-2] += 1
 	} else {
@@ -96,10 +103,16 @@ func main() {
 			Usage:    "input values, it should be like {1,2,3}",
 			Required: true,
 		},
+		&cli.BoolFlag{
+			Name:  "circle",
+			Usage: "circle or not",
+			Value: false,
+		},
 	}
 	app.Action = func(c *cli.Context) error {
 		input = c.IntSlice("input")
 		length = len(input)
+		circle = c.Bool("circle")
 		puzzle()
 		return nil
 	}
